@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: rotation-dashboard
+    runtime: python
+    env: python
+    region: singapore
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true --server.enableCORS=false --server.enableXsrfProtection=false
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.16
+      - key: DATA_SOURCE
+        value: github
+      - key: GITHUB_DATA_URL
+        value: https://raw.githubusercontent.com/Ray-Yuan21/lundong-data/main
+
+

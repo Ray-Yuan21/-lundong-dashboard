@@ -1,0 +1,17 @@
+# Dashboard 核心依赖（仅展示用）
+streamlit>=1.28.0
+pandas>=1.5.0
+numpy>=1.23.0
+plotly>=5.14.0
+
+# 注意：部署到 Render 时不需要以下重量级依赖
+# qlib, akshare, tushare 仅在本地生成数据时需要
+# Dashboard 从 GitHub 读取已生成的 CSV 数据，无需这些库
+
+
+
+
+
+
+
+
