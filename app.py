@@ -18,14 +18,12 @@ import subprocess
 import time
 
 # ======================== 数据源配置 ========================
-# 支持本地和 GitHub 两种数据源
-DATA_SOURCE = os.getenv('DATA_SOURCE', 'github')  # 'local' 或 'github'
-GITHUB_DATA_URL = os.getenv('GITHUB_DATA_URL', 
-    'https://raw.githubusercontent.com/Ray-Yuan21/lundong-data/main')
+# 部署版本 - 仅支持从 GitHub 读取数据
+DATA_SOURCE = 'github'
+GITHUB_DATA_URL = 'https://raw.githubusercontent.com/Ray-Yuan21/lundong-data/main'
 
-print(f"[配置] 数据源: {DATA_SOURCE}")
-if DATA_SOURCE == 'github':
-    print(f"[配置] GitHub URL: {GITHUB_DATA_URL}")
+print(f"[配置] 数据源: GitHub")
+print(f"[配置] 数据 URL: {GITHUB_DATA_URL}")
 # ==========================================================
 
 # 添加路径 - 确保指向 lundong 目录
@@ -139,63 +137,21 @@ class RotationDashboard:
     def load_rotation_scores(self):
         """加载轮动得分"""
         try:
-            if DATA_SOURCE == 'github':
-                url = f"{GITHUB_DATA_URL}/rotation_scores.csv"
-                print(f"[加载] 从 GitHub 读取: {url}")
-                df = pd.read_csv(url)
-            else:
-                if not self.rotation_scores_path.exists():
-                    return None
-                df = pd.read_csv(self.rotation_scores_path)
-            
+            url = f"{GITHUB_DATA_URL}/rotation_scores.csv"
+            print(f"[加载] 从 GitHub 读取: {url}")
+            df = pd.read_csv(url)
             df['date'] = pd.to_datetime(df['date'])
             return df
         except Exception as e:
             print(f"[错误] 加载轮动得分失败: {e}")
             return None
     
-    def load_selected_factors(self):
-        """加载选中的因子"""
-        try:
-            if DATA_SOURCE == 'github':
-                url = f"{GITHUB_DATA_URL}/selected_factors.csv"
-                print(f"[加载] 从 GitHub 读取: {url}")
-                return pd.read_csv(url)
-            else:
-                if not self.selected_factors_path.exists():
-                    return None
-                return pd.read_csv(self.selected_factors_path)
-        except Exception as e:
-            print(f"[错误] 加载因子列表失败: {e}")
-            return None
-    
-    def load_backtest_metrics(self):
-        """加载回测指标"""
-        try:
-            if DATA_SOURCE == 'github':
-                url = f"{GITHUB_DATA_URL}/backtest_results/backtest_metrics_top3_thu.csv"
-                print(f"[加载] 从 GitHub 读取: {url}")
-                return pd.read_csv(url, index_col=0)
-            else:
-                if not self.backtest_metrics_path.exists():
-                    return None
-                return pd.read_csv(self.backtest_metrics_path, index_col=0)
-        except Exception as e:
-            print(f"[提示] 回测指标文件不存在或加载失败: {e}")
-            return None
-    
     def load_period_returns(self):
         """加载周期收益率"""
         try:
-            if DATA_SOURCE == 'github':
-                url = f"{GITHUB_DATA_URL}/backtest_results/period_returns_top3_5d.csv"
-                print(f"[加载] 从 GitHub 读取: {url}")
-                df = pd.read_csv(url)
-            else:
-                if not self.period_returns_path.exists():
-                    return None
-                df = pd.read_csv(self.period_returns_path)
-            
+            url = f"{GITHUB_DATA_URL}/backtest_results/period_returns_top3_5d.csv"
+            print(f"[加载] 从 GitHub 读取: {url}")
+            df = pd.read_csv(url)
             if 'start_date' in df.columns:
                 df['start_date'] = pd.to_datetime(df['start_date'])
             if 'end_date' in df.columns:
@@ -208,35 +164,14 @@ class RotationDashboard:
     def load_trade_signals(self):
         """加载买卖信号"""
         try:
-            if DATA_SOURCE == 'github':
-                url = f"{GITHUB_DATA_URL}/backtest_results/trade_signals_top3_5d.csv"
-                print(f"[加载] 从 GitHub 读取: {url}")
-                df = pd.read_csv(url)
-            else:
-                if not self.trade_signals_path.exists():
-                    return None
-                df = pd.read_csv(self.trade_signals_path)
-            
+            url = f"{GITHUB_DATA_URL}/backtest_results/trade_signals_top3_5d.csv"
+            print(f"[加载] 从 GitHub 读取: {url}")
+            df = pd.read_csv(url)
             if 'date' in df.columns:
                 df['date'] = pd.to_datetime(df['date'])
             return df
         except Exception as e:
             print(f"[提示] 交易信号文件不存在: {e}")
-            return None
-    
-    def load_enhanced_metrics(self):
-        """加载增强回测指标"""
-        try:
-            if DATA_SOURCE == 'github':
-                url = f"{GITHUB_DATA_URL}/backtest_results/backtest_metrics_top3_5d.csv"
-                print(f"[加载] 从 GitHub 读取: {url}")
-                return pd.read_csv(url)
-            else:
-                if not self.enhanced_metrics_path.exists():
-                    return None
-                return pd.read_csv(self.enhanced_metrics_path)
-        except Exception as e:
-            print(f"[提示] 增强回测指标文件不存在: {e}")
             return None
     
     def step1_download_data(self):
@@ -456,10 +391,6 @@ class RotationDashboard:
 def main():
     """主函数"""
     
-    # 显示路径信息（调试用）
-    st.sidebar.markdown("---")
-    st.sidebar.caption(f"📁 项目路径: {PROJECT_ROOT}")
-    
     # 初始化
     dashboard = RotationDashboard()
     
@@ -472,7 +403,7 @@ def main():
     # 页面选择
     page = st.sidebar.radio(
         "选择功能",
-        ["🏠 首页概览", "🔄 数据更新", "📈 信号预测", "📊 可视化分析", "⚙️ 策略配置"]
+        ["🏠 首页概览", "📈 轮动信号", "📊 可视化分析"]
     )
     
     st.sidebar.markdown("---")
@@ -491,7 +422,7 @@ def main():
         signal_date = pd.to_datetime(scores_df['date'].max())
         st.sidebar.info(f"🎯 信号日期: {signal_date.strftime('%Y-%m-%d')}")
         
-        # 数据年龄和建议
+        # 数据年龄
         days_old = (datetime.now() - latest_date).days
         if days_old <= 1:
             st.sidebar.success(f"🟢 数据很新 ({days_old}天)")
@@ -499,27 +430,19 @@ def main():
             st.sidebar.info(f"🟡 数据较新 ({days_old}天)")
         else:
             st.sidebar.warning(f"🔴 数据较旧 ({days_old}天)")
-            st.sidebar.error("建议立即更新！")
         
         st.sidebar.caption(f"总计 {data_count:,} 条记录")
     else:
         st.sidebar.error("❌ 未找到数据")
-        st.sidebar.warning("请先更新数据！")
-    
-    st.sidebar.markdown("---")
-    st.sidebar.caption("当前配置: 20日因子 + 5日调仓")
+        st.sidebar.info("数据将从 GitHub 加载")
     
     # 根据选择显示不同页面
     if page == "🏠 首页概览":
         show_home_page(dashboard)
-    elif page == "🔄 数据更新":
-        show_update_page(dashboard)
-    elif page == "📈 信号预测":
+    elif page == "📈 轮动信号":
         show_signal_page(dashboard)
     elif page == "📊 可视化分析":
         show_analysis_page(dashboard)
-    elif page == "⚙️ 策略配置":
-        show_config_page(dashboard)
 
 
 def show_home_page(dashboard):
@@ -554,15 +477,15 @@ def show_home_page(dashboard):
         
         # 数据状态提示
         if days_old <= 1:
-            st.success("✅ 数据很新，可以直接使用")
+            st.success("✅ 数据很新")
         elif days_old <= 3:
-            st.info("ℹ️ 数据较新，建议更新到最新")
+            st.info("ℹ️ 数据较新")
         else:
-            st.warning("⚠️ 数据较旧，强烈建议更新")
+            st.warning("⚠️ 数据较旧")
     else:
         # 数据不存在
-        st.error("❌ 未找到数据文件！请先更新数据")
-        st.info("💡 点击左侧「🔄 数据更新」→「🔄 立即更新数据」")
+        st.error("❌ 未找到数据文件！")
+        st.info("💡 数据将从 GitHub 自动加载")
         return
     
     st.markdown("---")
@@ -620,9 +543,9 @@ def show_home_page(dashboard):
     
     with col1:
         if days_old > 2:
-            st.error("🔄 建议更新数据")
+            st.warning("📅 数据较旧")
         else:
-            st.info("💡 点击左侧「🔄 数据更新」")
+            st.success("✅ 数据较新")
     
     with col2:
         st.success("📈 查看详细信号")
@@ -1022,26 +945,20 @@ def show_signal_page(dashboard):
     # 日期选择
     available_dates = sorted(scores_df['date'].unique(), reverse=True)
     
-    col1, col2 = st.columns([2, 1])
+    selected_date = st.selectbox(
+        "选择日期",
+        available_dates,
+        format_func=lambda x: pd.to_datetime(x).strftime('%Y-%m-%d')
+    )
     
-    with col1:
-        selected_date = st.selectbox(
-            "选择日期",
-            available_dates,
-            format_func=lambda x: pd.to_datetime(x).strftime('%Y-%m-%d')
-        )
-    
-    with col2:
-        top_n = st.slider("显示Top N", 3, 20, 10)
-    
-    # 获取当天得分
+    # 获取当天得分（固定显示 TOP 3）
     daily_scores = scores_df[scores_df['date'] == selected_date].copy()
     daily_scores = daily_scores.sort_values('rotation_score', ascending=False)
     
-    # Top N 推荐
-    st.subheader(f"🎯 Top {top_n} 行业推荐")
+    # TOP 3 推荐
+    st.subheader("🎯 TOP 3 行业推荐")
     
-    top_scores = daily_scores.head(top_n)
+    top_scores = daily_scores.head(3)
     
     # 柱状图
     fig = go.Figure()
@@ -1058,10 +975,10 @@ def show_signal_page(dashboard):
     ))
     
     fig.update_layout(
-        title=f"轮动得分 Top {top_n} ({pd.to_datetime(selected_date).strftime('%Y-%m-%d')})",
+        title=f"轮动得分 TOP 3 ({pd.to_datetime(selected_date).strftime('%Y-%m-%d')})",
         xaxis_title="行业",
         yaxis_title="轮动得分",
-        height=500,
+        height=400,
         showlegend=False
     )
     
@@ -1070,13 +987,13 @@ def show_signal_page(dashboard):
     # 详细表格
     st.subheader("📋 详细得分")
     
-    display_df = daily_scores[['symbol', 'rotation_score']].copy()
-    display_df['排名'] = range(1, len(display_df) + 1)
+    display_df = top_scores[['symbol', 'rotation_score']].copy()
+    display_df['排名'] = range(1, 4)
     display_df = display_df[['排名', 'symbol', 'rotation_score']]
     display_df.columns = ['排名', '行业', '轮动得分']
     
     st.dataframe(
-        display_df.head(top_n),
+        display_df,
         use_container_width=True,
         hide_index=True
     )
@@ -1104,12 +1021,11 @@ def show_analysis_page(dashboard):
         return
     
     # 选项卡
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4 = st.tabs([
         "📈 得分趋势", 
         "🏆 行业排名", 
-        "📊 因子分析",
         "💰 周期收益率",
-        "🎯 买卖点分析"
+        "🎯 买卖信号"
     ])
     
     with tab1:
@@ -1119,12 +1035,9 @@ def show_analysis_page(dashboard):
         show_industry_ranking(scores_df)
     
     with tab3:
-        show_factor_analysis(dashboard)
-    
-    with tab4:
         show_period_returns(dashboard)
     
-    with tab5:
+    with tab4:
         show_trade_signals(dashboard)
 
 
@@ -1133,40 +1046,35 @@ def show_score_trend(scores_df):
     
     st.subheader("📈 行业轮动得分趋势")
     
-    # 行业选择
+    # 行业选择（单选）
     industries = sorted(scores_df['symbol'].unique())
     
-    selected_industries = st.multiselect(
-        "选择行业（最多5个）",
+    selected_industry = st.selectbox(
+        "选择行业",
         industries,
-        default=industries[:3] if len(industries) >= 3 else industries
+        index=0
     )
     
-    if not selected_industries:
-        st.warning("请至少选择一个行业")
-        return
-    
     # 绘制趋势图
+    industry_data = scores_df[scores_df['symbol'] == selected_industry].sort_values('date')
+    
     fig = go.Figure()
     
-    for industry in selected_industries[:5]:
-        industry_data = scores_df[scores_df['symbol'] == industry].sort_values('date')
-        
-        fig.add_trace(go.Scatter(
-            x=industry_data['date'],
-            y=industry_data['rotation_score'],
-            mode='lines+markers',
-            name=industry,
-            line=dict(width=2),
-            marker=dict(size=4)
-        ))
+    fig.add_trace(go.Scatter(
+        x=industry_data['date'],
+        y=industry_data['rotation_score'],
+        mode='lines+markers',
+        name=selected_industry,
+        line=dict(width=3, color='#1f77b4'),
+        marker=dict(size=6)
+    ))
     
     fig.update_layout(
-        title="行业轮动得分时序图",
+        title=f"{selected_industry} - 轮动得分趋势",
         xaxis_title="日期",
         yaxis_title="轮动得分",
         height=500,
-        hovermode='x unified'
+        showlegend=False
     )
     
     st.plotly_chart(fig, use_container_width=True)
@@ -1327,23 +1235,23 @@ def show_period_returns(dashboard):
     
     fig = go.Figure()
     
-    # 添加柱状图
+    # 添加柱状图（横坐标改为日期）
     colors = ['green' if r > 0 else 'red' for r in period_df['period_return']]
     
     fig.add_trace(go.Bar(
-        x=period_df['period_number'],
+        x=pd.to_datetime(period_df['start_date']),
         y=period_df['period_return'] * 100,  # 转换为百分比
         marker_color=colors,
         text=[f"{r:.2f}%" for r in period_df['period_return'] * 100],
         textposition='outside',
-        hovertemplate='<b>周期 #%{x}</b><br>' +
+        hovertemplate='<b>%{x|%Y-%m-%d}</b><br>' +
                       '收益率: %{y:.2f}%<br>' +
                       '<extra></extra>'
     ))
     
     fig.update_layout(
         title="每个调仓周期的收益率 (5日)",
-        xaxis_title="周期编号",
+        xaxis_title="开始日期",
         yaxis_title="收益率 (%)",
         height=500,
         showlegend=False,
@@ -1358,20 +1266,20 @@ def show_period_returns(dashboard):
     fig2 = go.Figure()
     
     fig2.add_trace(go.Scatter(
-        x=period_df['period_number'],
+        x=pd.to_datetime(period_df['start_date']),
         y=period_df['cumulative_value'],
         mode='lines+markers',
         name='累积净值',
         line=dict(color='steelblue', width=2),
         marker=dict(size=6),
-        hovertemplate='<b>周期 #%{x}</b><br>' +
+        hovertemplate='<b>%{x|%Y-%m-%d}</b><br>' +
                       '累积净值: %{y:.4f}<br>' +
                       '<extra></extra>'
     ))
     
     fig2.update_layout(
         title="累积净值曲线",
-        xaxis_title="周期编号",
+        xaxis_title="开始日期",
         yaxis_title="累积净值",
         height=400,
         showlegend=False,
@@ -1488,10 +1396,9 @@ def show_trade_signals(dashboard):
             height=400
         )
         
-        # GitHub 模式下只显示表格，本地模式才显示价格图
-        if DATA_SOURCE == 'github':
-            st.info("💡 提示：在线版本仅显示买卖信号表格。如需查看价格曲线图，请在本地运行 Dashboard。")
-            return
+        # 部署版本只显示买卖信号表格（无价格数据）
+        st.info("💡 提示：在线版本仅显示买卖信号表格。如需查看价格曲线图，请在本地项目中运行完整版 Dashboard。")
+        return
         
         # 尝试加载价格数据（仅本地模式）
         try:
