@@ -410,31 +410,32 @@ def main():
     
     # 数据状态
     st.sidebar.subheader("📊 数据状态")
-    latest_date, data_count = dashboard.load_data_status()
     scores_df = dashboard.load_rotation_scores()
     
-    if latest_date and scores_df is not None:
-        # 数据存在
+    if scores_df is not None and len(scores_df) > 0:
+        # 从轮动得分获取最新日期
+        latest_date = pd.to_datetime(scores_df['date'].max())
+        data_count = len(scores_df)
+        
         st.sidebar.success(f"✅ 数据已加载")
-        st.sidebar.info(f"📅 数据日期: {latest_date.strftime('%Y-%m-%d')}")
+        st.sidebar.info(f"📅 最新日期: {latest_date.strftime('%Y-%m-%d')}")
         
-        # 信号日期
-        signal_date = pd.to_datetime(scores_df['date'].max())
-        st.sidebar.info(f"🎯 信号日期: {signal_date.strftime('%Y-%m-%d')}")
-        
-        # 数据年龄
+        # 计算数据年龄（距离今天的天数）
         days_old = (datetime.now() - latest_date).days
-        if days_old <= 1:
-            st.sidebar.success(f"🟢 数据很新 ({days_old}天)")
-        elif days_old <= 3:
-            st.sidebar.info(f"🟡 数据较新 ({days_old}天)")
+        
+        if days_old == 0:
+            st.sidebar.success(f"🟢 今天更新")
+        elif days_old == 1:
+            st.sidebar.success(f"🟢 昨天更新")
+        elif days_old <= 7:
+            st.sidebar.info(f"🟡 {days_old} 天前")
         else:
-            st.sidebar.warning(f"🔴 数据较旧 ({days_old}天)")
+            st.sidebar.warning(f"🔴 {days_old} 天前（数据较旧）")
         
         st.sidebar.caption(f"总计 {data_count:,} 条记录")
     else:
-        st.sidebar.error("❌ 未找到数据")
-        st.sidebar.info("数据将从 GitHub 加载")
+        st.sidebar.error("❌ 数据加载失败")
+        st.sidebar.caption("正在从 GitHub 加载...")
     
     # 根据选择显示不同页面
     if page == "🏠 首页概览":
@@ -453,10 +454,12 @@ def show_home_page(dashboard):
     # 首先显示数据状态 - 这是最重要的！
     st.subheader("📊 当前数据状态")
     
-    latest_date, data_count = dashboard.load_data_status()
     scores_df = dashboard.load_rotation_scores()
     
-    if latest_date and scores_df is not None:
+    if scores_df is not None and len(scores_df) > 0:
+        # 从轮动得分获取最新日期
+        latest_date = pd.to_datetime(scores_df['date'].max())
+        data_count = len(scores_df)
         # 数据存在，显示详细状态
         col1, col2, col3, col4 = st.columns(4)
         
@@ -465,23 +468,32 @@ def show_home_page(dashboard):
         
         with col2:
             days_old = (datetime.now() - latest_date).days
-            color = "normal" if days_old <= 2 else "inverse"
-            st.metric("📈 数据年龄", f"{days_old} 天", delta_color=color)
+            if days_old == 0:
+                st.metric("📈 数据年龄", "今天")
+            elif days_old == 1:
+                st.metric("📈 数据年龄", "昨天")
+            else:
+                st.metric("📈 数据年龄", f"{days_old} 天前")
         
         with col3:
-            st.metric("📊 数据条数", f"{data_count:,}")
+            # 统计有多少个行业
+            industries_count = scores_df['symbol'].nunique()
+            st.metric("🏢 覆盖行业", f"{industries_count}")
         
         with col4:
-            signal_date = pd.to_datetime(scores_df['date'].max()).strftime('%Y-%m-%d')
-            st.metric("🎯 信号日期", signal_date)
+            # 统计交易日数量
+            trading_days = scores_df['date'].nunique()
+            st.metric("📊 历史天数", f"{trading_days}")
         
         # 数据状态提示
-        if days_old <= 1:
-            st.success("✅ 数据很新")
-        elif days_old <= 3:
-            st.info("ℹ️ 数据较新")
+        if days_old == 0:
+            st.success("✅ 数据今天已更新")
+        elif days_old == 1:
+            st.success("✅ 数据昨天已更新")
+        elif days_old <= 7:
+            st.info(f"ℹ️ 数据 {days_old} 天前更新")
         else:
-            st.warning("⚠️ 数据较旧")
+            st.warning(f"⚠️ 数据 {days_old} 天未更新，建议更新")
     else:
         # 数据不存在
         st.error("❌ 未找到数据文件！")
