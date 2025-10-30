@@ -1480,7 +1480,20 @@ def show_trade_signals(dashboard):
         
         st.success(f"✓ 找到 {len(symbol_signals)} 个信号记录")
         
-        # 尝试加载价格数据
+        # 显示信号表格
+        st.markdown("#### 📋 买卖信号记录")
+        st.dataframe(
+            symbol_signals.sort_values('date', ascending=False),
+            use_container_width=True,
+            height=400
+        )
+        
+        # GitHub 模式下只显示表格，本地模式才显示价格图
+        if DATA_SOURCE == 'github':
+            st.info("💡 提示：在线版本仅显示买卖信号表格。如需查看价格曲线图，请在本地运行 Dashboard。")
+            return
+        
+        # 尝试加载价格数据（仅本地模式）
         try:
             # 尝试多个可能的路径
             possible_paths = [
