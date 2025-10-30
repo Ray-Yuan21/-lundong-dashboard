@@ -19,9 +19,9 @@ import time
 
 # ======================== 数据源配置 ========================
 # 支持本地和 GitHub 两种数据源
-DATA_SOURCE = os.getenv('DATA_SOURCE', 'local')  # 'local' 或 'github'
+DATA_SOURCE = os.getenv('DATA_SOURCE', 'github')  # 'local' 或 'github'
 GITHUB_DATA_URL = os.getenv('GITHUB_DATA_URL', 
-    'https://raw.githubusercontent.com/YOUR_USERNAME/lundong-data/main')
+    'https://raw.githubusercontent.com/Ray-Yuan21/lundong-data/main')
 
 print(f"[配置] 数据源: {DATA_SOURCE}")
 if DATA_SOURCE == 'github':
