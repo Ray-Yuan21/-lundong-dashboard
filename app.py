@@ -188,17 +188,19 @@ class RotationDashboard:
         """加载周期收益率"""
         try:
             if DATA_SOURCE == 'github':
-                # GitHub 数据仓库不包含这个文件，返回 None
-                return None
+                url = f"{GITHUB_DATA_URL}/backtest_results/period_returns_top3_5d.csv"
+                print(f"[加载] 从 GitHub 读取: {url}")
+                df = pd.read_csv(url)
             else:
                 if not self.period_returns_path.exists():
                     return None
                 df = pd.read_csv(self.period_returns_path)
-                if 'start_date' in df.columns:
-                    df['start_date'] = pd.to_datetime(df['start_date'])
-                if 'end_date' in df.columns:
-                    df['end_date'] = pd.to_datetime(df['end_date'])
-                return df
+            
+            if 'start_date' in df.columns:
+                df['start_date'] = pd.to_datetime(df['start_date'])
+            if 'end_date' in df.columns:
+                df['end_date'] = pd.to_datetime(df['end_date'])
+            return df
         except Exception as e:
             print(f"[提示] 周期收益率文件不存在: {e}")
             return None
@@ -207,15 +209,17 @@ class RotationDashboard:
         """加载买卖信号"""
         try:
             if DATA_SOURCE == 'github':
-                # GitHub 数据仓库不包含这个文件，返回 None
-                return None
+                url = f"{GITHUB_DATA_URL}/backtest_results/trade_signals_top3_5d.csv"
+                print(f"[加载] 从 GitHub 读取: {url}")
+                df = pd.read_csv(url)
             else:
                 if not self.trade_signals_path.exists():
                     return None
                 df = pd.read_csv(self.trade_signals_path)
-                if 'date' in df.columns:
-                    df['date'] = pd.to_datetime(df['date'])
-                return df
+            
+            if 'date' in df.columns:
+                df['date'] = pd.to_datetime(df['date'])
+            return df
         except Exception as e:
             print(f"[提示] 交易信号文件不存在: {e}")
             return None
@@ -224,8 +228,9 @@ class RotationDashboard:
         """加载增强回测指标"""
         try:
             if DATA_SOURCE == 'github':
-                # GitHub 数据仓库不包含这个文件，返回 None
-                return None
+                url = f"{GITHUB_DATA_URL}/backtest_results/backtest_metrics_top3_5d.csv"
+                print(f"[加载] 从 GitHub 读取: {url}")
+                return pd.read_csv(url)
             else:
                 if not self.enhanced_metrics_path.exists():
                     return None
